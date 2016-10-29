@@ -1,4 +1,4 @@
-module Imgur.Types where
+module Imgur.Types.DataModel where
 
 data Client = Client {
     clientID     :: Text,
