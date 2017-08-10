@@ -1,0 +1,2 @@
+module Imgur.Types where
+

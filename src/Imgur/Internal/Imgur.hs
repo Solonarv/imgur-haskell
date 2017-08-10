@@ -13,11 +13,21 @@ import Control.Monad.Reader
 import Control.Monad.Base
 import Control.Monad.Trans.Control
 
+import Control.Lens
+
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
 
+import Data.Text (Text)
+import qualified Data.Text as T
+
+import Data.Semigroup
+
+import Network.Wreq
 import Network.Wreq.Session (Session)
 import qualified Network.Wreq.Session as Sess
+
+import Imgur.Types.Core
 
 newtype ImgurT m a = ImgurT {_runImgurT :: ImgurConfig -> Session -> m a} deriving (Functor)
 type Imgur = ImgurT IO
@@ -65,3 +75,16 @@ data ClientKey = ClientKey {
     clientID :: ByteString,
     clientSecret :: ByteString
     }
+
+
+getOpts :: MonadReader ImgurConfig m => m Options
+getOpts = do
+    cfg <- ask
+    pure $ defaults & header "Authorization" .~ ["Client-ID " <> clientID (cfgClientKey cfg)]
+
+apiEndpoint :: (MonadReader ImgurConfig m, Endpoint end) => end -> m URL
+apiEndpoint end = return $ "https://api.imgur.com/3/" <> endRoute end
+
+class Endpoint end where
+    type EndpointResult end :: *
+    endRoute :: end -> Text
